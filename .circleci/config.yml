@@ -76,7 +76,7 @@ jobs:
             aws eks update-kubeconfig --region eu-central-1 --name eks-nebulance
             
             # Deploy with Helm
-            helm upgrade --install nebulance-app helm-charts/ --namespace nebulance-app
+            helm upgrade --install nebulance-app helm-charts/
             
 
 workflows:
