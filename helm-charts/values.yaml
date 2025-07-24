@@ -116,8 +116,7 @@ secrets:
   region: eu-central-1
   secretStore:
     name: aws-secrets-store
-    serviceAccountName: external-secrets
-    namespace: external-secrets
+    serviceAccountName: external-secrets-sa
 
   database:
     secretName: database-secrets
