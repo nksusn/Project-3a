@@ -53,29 +53,15 @@ jobs:
           command: |
             echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
             
-            # Create image tag with branch, date and git SHA
-            BRANCH=$(echo $CIRCLE_BRANCH | sed 's/[^a-zA-Z0-9]/-/g')
-            DATE=$(date +"%Y%m%d")
-            SHA=$(echo $CIRCLE_SHA1 | cut -c1-7)
-            IMAGE_TAG="${BRANCH}-${DATE}-${SHA}"
-            
             # Build and push backend image
             cd application/backend
-            docker build -t $DOCKER_USERNAME/nebulance-app:backend-$IMAGE_TAG .
-            docker push $DOCKER_USERNAME/nebulance-app:backend-$IMAGE_TAG
+            docker build -t  nksusn/nebulance-app:backend-1.0.0 .
+            docker push nksusn/nebulance-app:backend-1.0.0
             
             # Build and push frontend image
             cd ../frontend
-            docker build -t $DOCKER_USERNAME/nebulance-app:frontend-$IMAGE_TAG .
-            docker push $DOCKER_USERNAME/nebulance-app:frontend-$IMAGE_TAG
-            
-            # Save image tag for deployment
-            echo "export IMAGE_TAG=$IMAGE_TAG" >> $BASH_ENV
-            echo $IMAGE_TAG > /tmp/image_tag.txt
-      - persist_to_workspace:
-          root: /tmp
-          paths:
-            - image_tag.txt
+            docker build -t nksusn/nebulance-app:frontend-1.0.0 .
+            docker push nksusn/nebulance-app:frontend-1.0.0
 
   deploy-to-eks:
     docker:
@@ -89,33 +75,9 @@ jobs:
           command: |
             aws eks update-kubeconfig --region eu-central-1 --name eks-nebulance
             
-            # Use image tag from build job
-            IMAGE_TAG=$(cat /tmp/image_tag.txt)
-            
-            # Update Helm values with new images
-            sed -i "s|repository: hilltopconsultancy/neb-frontend|repository: $DOCKER_USERNAME/nebulance-app|g" helm-charts/values.yaml
-            sed -i "s|repository: hilltopconsultancy/neb-backend|repository: $DOCKER_USERNAME/nebulance-app|g" helm-charts/values.yaml
-            sed -i "s|tag: \"frontend-v1\"|tag: \"frontend-$IMAGE_TAG\"|g" helm-charts/values.yaml
-            sed -i "s|tag: \"backend-v1\"|tag: \"backend-$IMAGE_TAG\"|g" helm-charts/values.yaml
-            
-            # Commit updated values.yaml back to repo if changes exist
-            if ! git diff --quiet helm-charts/values.yaml; then
-              git config user.email "forchu.cha@gmail.com"
-              git config user.name "CircleCI"
-              git remote set-url origin https://$GITHUB_TOKEN@github.com/CHAFAH/project-3.git
-              git add helm-charts/values.yaml
-              git commit -m "Update image tags to $IMAGE_TAG [skip ci]"
-              git push origin $CIRCLE_BRANCH
-            fi
-            
-            # Create namespace if it doesn't exist
-            kubectl create namespace nebulance-app --dry-run=client -o yaml | kubectl apply -f -
-            
             # Deploy with Helm
-            helm upgrade --install nebulance-app helm-charts/ \
-              --namespace nebulance-app \
-              --set secrets.enabled=true \
-              --timeout 10m
+            helm upgrade --install nebulance-app helm-charts/ --namespace nebulance-app
+            
 
 workflows:
   version: 2
