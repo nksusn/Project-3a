@@ -1,0 +1,16 @@
+{{- if .Values.storageClass.enabled }}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ .Values.storageClass.name }}
+  labels:
+    {{- include "app-stack.labels" . | nindent 4 }}
+provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+parameters:
+  type: {{ .Values.storageClass.type }}
+  iops: "{{ .Values.storageClass.iops }}"
+  throughput: "{{ .Values.storageClass.throughput }}"
+  encrypted: "{{ .Values.storageClass.encrypted }}"
+{{- end }}

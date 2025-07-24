@@ -101,6 +101,15 @@ database:
     accessMode: ReadWriteOnce
     size: 20Gi
 
+# Storage Class configuration
+storageClass:
+  enabled: true
+  name: "gp3-csi"
+  type: "gp3"
+  iops: "3000"
+  throughput: "125"
+  encrypted: "true"
+
 # AWS Secrets Manager integration
 secrets:
   enabled: true
@@ -138,7 +147,7 @@ serviceAccount:
   create: true
   name: external-secrets-sa
   annotations:
-    eks.amazonaws.com/role-arn: "arn:aws:iam::531807594086:role/eks-nebulance-external-secrets"
+    eks.amazonaws.com/role-arn: "arn:aws:iam::940482433884:role/eks-nebulance-external-secrets"
 
 # Monitoring and observability
 monitoring:
